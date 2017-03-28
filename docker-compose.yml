@@ -1,18 +1,25 @@
-version: '2'
-
+---
+version: "2"
 services:
   s3fs:
-    image: xueshanf/s3fs:latest
-    environment:
-      AWSACCESSKEYID: FOOBAR
-      AWSSECRETACCESSKEY: FOOBARBAZ
+    image: "camptocamp/s3fs"
     cap_add:
-      - MKNOD
       - SYS_ADMIN
-    security_opt:
-      - apparmor:unconfined
+      - MKNOD
+    privileged: true
     devices:
-      - /dev/fuse
+      - "/dev/fuse"
+    environment:
+      BUCKETNAME: "<YOUR_BUCKET>"
+      AWSACCESSKEYID: "<YOUR_ACCESS_KEY>"
+      AWSSECRETACCESSKEY: "<YOUR_PRIVATE_KEY>"
     volumes:
-      - /mnt/mydata:/mnt:shared
-    command: /usr/bin/s3fs -f -o allow_other -o use_cache=/tmp S3_BUCKET_NAME /mnt/
+      - "/var/lib/s3fs/mytest:/home/shared/s3:shared"
+    tty: true
+  
+  web:
+    image: nginx
+    ports:
+      - 8080:80
+    volumes:
+      - "/var/lib/s3fs/mytest:/usr/share/nginx/html:shared,ro"
