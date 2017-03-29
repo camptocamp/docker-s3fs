@@ -1,13 +1,13 @@
 #!/bin/bash
 
-trap "umount /home/shared/s3" SIGKILL SIGTERM SIGHUP SIGINT EXIT
+SHARED_DIR="/home/shared/s3"
+TMPDIR="/tmp"
 
-mount --make-shared /home/shared/s3
+trap "umount ${SHARED_DIR}" SIGKILL SIGTERM SIGHUP SIGINT EXIT
 
-mkdir -p /home/shared/s3
-mkdir -p /tmp
-
-OPTS="-o use_cache=/tmp -o allow_other -o umask=022 -o use_rrs -f"
+mount --make-shared $SHARED_DIR
+mkdir -p $TMPDIR
+OPTS="-o use_cache=${TMPDIR} -o allow_other -o umask=022 -o use_rrs -f"
 
 if ! test -z "$S3FS_GID"; then
   groupadd -g $S3FS_GID s3fs
@@ -27,7 +27,7 @@ if ! test -z "$DEBUG_LEVEL"; then
   OPTS="${OPTS} -o dbglevel=${DEBUG_LEVEL}"
 fi
 
-s3fs $BUCKETNAME /home/shared/s3 $OPTS $EXTRA_OPTS &
+s3fs $BUCKETNAME $SHARED_DIR $OPTS $EXTRA_OPTS &
 
 wait
 sleep 2
